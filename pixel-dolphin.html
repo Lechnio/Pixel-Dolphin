@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIXELDOLPHIN — Flipper Icon Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090b;
+      --panel: #131316;
+      --panel-2: #1b1b20;
+      --line: #2a2a31;
+      --ink: #e8e8ea;
+      --muted: #7d7d86;
+      --accent: #fe8b17;
+      --accent-dim: #aa5c10;
+      --on: #f5f5f2;
+      --grid: #26262c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      background:
+        radial-gradient(900px 500px at 80% -10%, rgba(254, 139, 23, 0.08), transparent 60%),
+        repeating-linear-gradient(0deg, transparent 0 2px, rgba(255, 255, 255, 0.012) 2px 3px),
+        var(--bg);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 18px 48px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      width: 100%;
+      max-width: 920px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 22px
+    }
+
+    h1 {
+      font-family: 'VT323', monospace;
+      font-weight: 400;
+      font-size: clamp(34px, 6vw, 56px);
+      line-height: .9;
+      letter-spacing: 1px;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(254, 139, 23, .25);
+    }
+
+    h1 .sub {
+      display: block;
+      font-family: 'JetBrains Mono';
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-shadow: none;
+      margin-top: 6px;
+      text-transform: uppercase
+    }
+
+    .badge {
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 6px 11px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      white-space: nowrap
+    }
+
+    .badge b {
+      color: var(--accent)
+    }
+
+    main {
+      width: 100%;
+      max-width: 920px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 22px;
+      align-items: start
+    }
+
+    @media(max-width:760px) {
+      main {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .stage {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      line-height: 0;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px var(--line)
+    }
+
+    canvas {
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+      image-rendering: pixelated
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px
+    }
+
+    .panel h2 {
+      font-family: 'VT323';
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--ink);
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 6px
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .row.wrap {
+      flex-wrap: wrap
+    }
+
+    label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 7px
+    }
+
+    .dims {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .dims input {
+      width: 62px
+    }
+
+    input[type=number],
+    input[type=text] {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'JetBrains Mono';
+      font-size: 14px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 2px rgba(254, 139, 23, .12)
+    }
+
+    .presets {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap
+    }
+
+    .chip {
+      flex: 1;
+      min-width: 54px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-family: 'JetBrains Mono';
+      font-size: 12px;
+      padding: 8px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .15s
+    }
+
+    .chip:hover {
+      border-color: var(--accent-dim);
+      color: var(--ink)
+    }
+
+    .chip.active {
+      background: rgba(254, 139, 23, .12);
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px
+    }
+
+    button.tool {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'JetBrains Mono';
+      font-size: 12px;
+      padding: 11px 8px;
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: .15s;
+      letter-spacing: .5px;
+    }
+
+    button.tool:hover {
+      border-color: var(--accent-dim)
+    }
+
+    button.tool.active {
+      background: rgba(254, 139, 23, .14);
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    button.tool svg {
+      width: 15px;
+      height: 15px;
+      flex: none
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .5px
+    }
+
+    .switch {
+      position: relative;
+      width: 42px;
+      height: 23px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      cursor: pointer;
+      flex: none;
+      transition: .2s
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: .2s
+    }
+
+    .switch.on {
+      background: rgba(254, 139, 23, .2);
+      border-color: var(--accent)
+    }
+
+    .switch.on::after {
+      left: 21px;
+      background: var(--accent)
+    }
+
+    .preview-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px
+    }
+
+    #preview {
+      image-rendering: pixelated;
+      border: 1px solid var(--line);
+      background:
+        conic-gradient(#2a2a31 25%, #1b1b20 0 50%, #2a2a31 0 75%, #1b1b20 0) 0 0/10px 10px
+    }
+
+    .preview-box .meta {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7
+    }
+
+    .preview-box .meta b {
+      color: var(--ink)
+    }
+
+    .save {
+      background: linear-gradient(180deg, var(--accent), var(--accent-dim));
+      color: #1a1003;
+      border: none;
+      font-family: 'JetBrains Mono';
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 1px;
+      padding: 15px;
+      border-radius: 11px;
+      cursor: pointer;
+      width: 100%;
+      transition: .15s;
+      box-shadow: 0 10px 24px -10px rgba(254, 139, 23, .6);
+    }
+
+    .save:hover {
+      filter: brightness(1.08)
+    }
+
+    .save:active {
+      transform: translateY(1px)
+    }
+
+    .full-btn {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: 'JetBrains Mono';
+      font-size: 12px;
+      letter-spacing: .5px;
+      padding: 11px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: .15s;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .full-btn:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent)
+    }
+
+    .full-btn svg {
+      width: 14px;
+      height: 14px
+    }
+
+    footer {
+      max-width: 920px;
+      margin-top: 24px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.8;
+      letter-spacing: .3px
+    }
+
+    footer b {
+      color: var(--accent)
+    }
+
+    kbd {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 6px;
+      font-size: 11px;
+      color: var(--ink)
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .5px;
+      text-align: center
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>PIXEL<span style="color:var(--ink)">DOLPHIN</span><span class="sub">icon editor · flipper zero</span></h1>
+    <div class="badge">monochrome · <b id="dimBadge">10×10</b> px</div>
+  </header>
+
+  <main>
+    <section class="stage">
+      <div class="canvas-wrap">
+        <canvas id="editor"></canvas>
+      </div>
+      <div class="hint">left click — draw · drag to paint a stroke · right click — erase</div>
+    </section>
+
+    <aside class="panel">
+      <h2>size</h2>
+      <div>
+        <div class="presets" id="presets">
+          <button class="chip active" data-w="10" data-h="10">10×10</button>
+          <button class="chip" data-w="8" data-h="8">8×8</button>
+          <button class="chip" data-w="14" data-h="14">14×14</button>
+        </div>
+        <div class="dims" style="margin-top:10px">
+          <div><label>width</label><input type="number" id="inW" min="1" max="128" value="10"></div>
+          <span style="color:var(--muted);margin-top:18px">×</span>
+          <div><label>height</label><input type="number" id="inH" min="1" max="128" value="10"></div>
+        </div>
+        <button class="full-btn" id="loadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <path d="M12 3v12M7 8l5-5 5 5" />
+          </svg>
+          load image
+        </button>
+        <input type="file" id="fileInput" accept="image/png,image/*" style="display:none">
+      </div>
+
+      <div>
+        <h2>tools</h2>
+        <div class="tools" style="margin-top:6px">
+          <button class="tool active" id="toolDraw">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 19l7-7 3 3-7 7-3-3z" />
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+              <path d="M2 2l7.586 7.586" />
+            </svg>
+            draw
+          </button>
+          <button class="tool" id="toolErase">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 20H7L3 16a2 2 0 010-3l9-9a2 2 0 013 0l5 5a2 2 0 010 3l-7 7" />
+            </svg>
+            erase
+          </button>
+          <button class="tool" id="toolInvert">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 3a9 9 0 010 18z" fill="currentColor" />
+            </svg>
+            invert
+          </button>
+          <button class="tool" id="toolClear">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+            </svg>
+            clear
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h2>export</h2>
+        <div class="toggle-row" style="margin-top:8px">
+          <span>transparent background</span>
+          <div class="switch" id="swTransparent"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-top:7px">⚠ keep this OFF for Flipper —
+          transparent icons often import as all-black. Black on white is the safe format.</div>
+        <div class="preview-box" style="margin-top:12px">
+          <canvas id="preview" width="10" height="10" style="width:50px;height:50px"></canvas>
+          <div class="meta">1:1 preview<br><b id="previewDim">10 × 10 px</b><br>black = pixel on</div>
+        </div>
+        <label style="margin-top:14px">file name</label>
+        <input type="text" id="fname" value="icon.png">
+      </div>
+
+      <button class="save" id="saveBtn">▼ SAVE PNG</button>
+    </aside>
+  </main>
+
+  <footer>
+    <b>Flipper tip:</b> export icons as <b>black pixels on a white, opaque background</b> (not transparent) —
+    transparent PNGs often import as solid black. &nbsp;·&nbsp;
+    <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes the last action. &nbsp;·&nbsp; If the save button downloads the file straight
+    away instead of asking "where", download this <b>.html</b> file and open it locally in Chrome/Edge — then you get a
+    native "Save as" dialog.
+    <br><br>
+    made by
+    <a href="https://github.com/Lechnio/Pixel-Dolphin" target="_blank" rel="noopener noreferrer"
+      style="color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-dim)">Lechnio</a>
+  </footer>
+
+  <script>
+    (function () {
+      const editor = document.getElementById('editor');
+      const ctx = editor.getContext('2d');
+      const preview = document.getElementById('preview');
+      const pctx = preview.getContext('2d');
+
+      let W = 10, H = 10;
+      let grid = [];
+      let cell = 36;
+      const MAX_DISPLAY = 460;
+      let tool = 'draw';
+      let transparent = false;
+      let drawing = false, drawValue = 1;
+      const history = [];
+
+      function newGrid(w, h, keep) {
+        const g = [];
+        for (let y = 0; y < h; y++) {
+          g[y] = [];
+          for (let x = 0; x < w; x++) {
+            g[y][x] = (keep && grid[y] && grid[y][x] !== undefined) ? grid[y][x] : 0;
+          }
+        }
+
+        return g;
+      }
+
+      function setSize(w, h, keep) {
+        w = Math.max(1, Math.min(128, w | 0));
+        h = Math.max(1, Math.min(128, h | 0));
+        W = w; H = h;
+        grid = newGrid(W, H, keep);
+        cell = Math.max(6, Math.floor(MAX_DISPLAY / Math.max(W, H)));
+        editor.width = W * cell; editor.height = H * cell;
+        preview.width = W; preview.height = H;
+        preview.style.width = Math.min(72, W * 5) + 'px';
+        preview.style.height = Math.min(72, H * 5) + 'px';
+        document.getElementById('inW').value = W;
+        document.getElementById('inH').value = H;
+        document.getElementById('dimBadge').textContent = W + '×' + H;
+        document.getElementById('previewDim').textContent = W + ' × ' + H + ' px';
+
+        document.querySelectorAll('#presets .chip').forEach(c => {
+          c.classList.toggle('active', +c.dataset.w === W && +c.dataset.h === H);
+        });
+        draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, editor.width, editor.height);
+
+        for (let y = 0; y < H; y++)for (let x = 0; x < W; x++) {
+          if (grid[y][x]) {
+            ctx.fillStyle = getCss('--on');
+          } else {
+            ctx.fillStyle = ((x + y) & 1) ? '#141418' : '#0e0e11';
+          }
+          ctx.fillRect(x * cell, y * cell, cell, cell);
+        }
+
+        ctx.strokeStyle = getCss('--grid'); ctx.lineWidth = 1;
+        ctx.beginPath();
+
+        for (let x = 0; x <= W; x++) {
+          ctx.moveTo(x * cell + .5, 0);
+          ctx.lineTo(x * cell + .5, H * cell);
+        }
+
+        for (let y = 0; y <= H; y++) {
+          ctx.moveTo(0, y * cell + .5);
+          ctx.lineTo(W * cell, y * cell + .5);
+        }
+
+        ctx.stroke();
+        renderPreview();
+      }
+
+      function renderPreview() {
+        pctx.clearRect(0, 0, W, H);
+        for (let y = 0; y < H; y++)for (let x = 0; x < W; x++) {
+          if (grid[y][x]) {
+            pctx.fillStyle = '#000'; pctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+
+      function getCss(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+      function cellFromEvent(e) {
+        const r = editor.getBoundingClientRect();
+        const x = Math.floor((e.clientX - r.left) / (r.width / W));
+        const y = Math.floor((e.clientY - r.top) / (r.height / H));
+        if (x < 0 || y < 0 || x >= W || y >= H) {
+          return null;
+        }
+
+        return { x, y };
+      }
+
+      function pushHistory() { history.push(grid.map(r => r.slice())); if (history.length > 60) history.shift(); }
+
+      function apply(c, val) {
+        if (!c) {
+          return;
+        }
+
+        if (grid[c.y][c.x] !== val) {
+          grid[c.y][c.x] = val; draw();
+        }
+      }
+
+
+      editor.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        const c = cellFromEvent(e); if (!c) return;
+        pushHistory();
+        drawing = true;
+        editor.setPointerCapture(e.pointerId);
+
+        if (tool === 'erase' || e.button === 2) {
+          drawValue = 0;
+        }
+        else {
+          drawValue = 1;
+        }
+
+        apply(c, drawValue);
+      });
+      editor.addEventListener('pointermove', e => {
+        if (!drawing) {
+          return;
+        }
+
+        apply(cellFromEvent(e), drawValue);
+      });
+      editor.addEventListener('pointerup', () => drawing = false);
+      editor.addEventListener('pointercancel', () => drawing = false);
+      editor.addEventListener('contextmenu', e => e.preventDefault());
+
+      function setTool(t) {
+        tool = t;
+        document.getElementById('toolDraw').classList.toggle('active', t === 'draw');
+        document.getElementById('toolErase').classList.toggle('active', t === 'erase');
+      }
+      document.getElementById('toolDraw').onclick = () => setTool('draw');
+      document.getElementById('toolErase').onclick = () => setTool('erase');
+      document.getElementById('toolClear').onclick = () => { pushHistory(); grid = newGrid(W, H, false); draw(); };
+      document.getElementById('toolInvert').onclick = () => { pushHistory(); for (let y = 0; y < H; y++)for (let x = 0; x < W; x++) grid[y][x] ^= 1; draw(); };
+
+      document.querySelectorAll('#presets .chip').forEach(c => {
+        c.onclick = () => setSize(+c.dataset.w, +c.dataset.h, true);
+      });
+      document.getElementById('inW').onchange = e => setSize(+e.target.value, H, true);
+      document.getElementById('inH').onchange = e => setSize(W, +e.target.value, true);
+
+      const sw = document.getElementById('swTransparent');
+      sw.onclick = () => { transparent = !transparent; sw.classList.toggle('on', transparent); };
+
+      window.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          if (history.length) {
+            grid = history.pop(); draw();
+          }
+
+          e.preventDefault();
+        }
+      });
+
+      document.getElementById('loadBtn').onclick = () => document.getElementById('fileInput').click();
+      document.getElementById('fileInput').onchange = e => {
+        const file = e.target.files[0];
+        if (!file) {
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          let tw = img.naturalWidth, th = img.naturalHeight;
+          const scale = Math.min(1, 128 / Math.max(tw, th));
+          tw = Math.max(1, Math.round(tw * scale));
+          th = Math.max(1, Math.round(th * scale));
+
+          const tmp = document.createElement('canvas');
+          tmp.width = tw; tmp.height = th;
+          const tc = tmp.getContext('2d');
+          tc.imageSmoothingEnabled = false;
+          tc.drawImage(img, 0, 0, tw, th);
+          const data = tc.getImageData(0, 0, tw, th).data;
+          pushHistory();
+          setSize(tw, th, false);
+
+          for (let y = 0; y < th; y++) {
+            for (let x = 0; x < tw; x++) {
+              const i = (y * tw + x) * 4;
+              const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+              const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+              grid[y][x] = (a >= 128 && lum < 128) ? 1 : 0;
+            }
+          }
+
+          draw();
+          URL.revokeObjectURL(img.src);
+        };
+
+        img.onerror = () => alert('Could not read that image file.');
+        img.src = URL.createObjectURL(file);
+        e.target.value = '';
+      };
+
+      function buildBlob() {
+        const out = document.createElement('canvas');
+        out.width = W; out.height = H;
+        const o = out.getContext('2d');
+
+        if (!transparent) {
+          o.fillStyle = '#ffffff'; o.fillRect(0, 0, W, H);
+        }
+
+        o.fillStyle = '#000000';
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            if (grid[y][x]) o.fillRect(x, y, 1, 1);
+          }
+        }
+
+        return new Promise(res => out.toBlob(res, 'image/png'));
+      }
+
+      document.getElementById('saveBtn').onclick = async () => {
+        let name = document.getElementById('fname').value.trim() || 'icon.png';
+        if (!/\.png$/i.test(name)) {
+          name += '.png';
+        }
+
+        const blob = await buildBlob();
+
+        if (window.showSaveFilePicker) {
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: name,
+              types: [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }]
+            });
+            const w = await handle.createWritable();
+            await w.write(blob); await w.close();
+            return;
+          } catch (err) {
+            if (err && err.name === 'AbortError') {
+              return;
+            }
+          }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = name; document.body.appendChild(a); a.click();
+        a.remove(); URL.revokeObjectURL(url);
+      };
+
+      setSize(10, 10, false);
+    })();
+  </script>
+</body>
+
+</html>
